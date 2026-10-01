@@ -1,133 +1,103 @@
-# 🍏 Fruit Ripeness Predictor & Shelf-Life Estimation System
-## Technical Implementation Plan
+# 🍏 Fruit Ripeness & Shelf-Life Predictor (Solo Plan)
+## Technical Implementation Plan — TensorFlow / Keras Stack
 
 ---
 
-## 📌 1. Project Overview & Team Roles
+## 📌 1. Project Concept & Architecture
 
-This project combines **Computer Vision (Visual Analysis)** with **Tabular Machine Learning (Decay Kinetics)** to classify fruit ripeness from images and estimate remaining edible shelf-life based on environmental conditions.
+The **Fruit Ripeness & Shelf-Life Predictor** is an AI application that evaluates fruit quality visually and predicts how many days of edible life remain under specific storage conditions.
 
 ```mermaid
-flowchart LR
-    A[Fruit Image Input] --> B[Engineer A: ResNet18 Classifier]
-    B -->|fruit_type, ripeness_stage, confidence| C[System Integrator / API]
-    D[Storage Temp & Humidity] --> E[Engineer B: XGBoost Regressor]
-    E -->|estimated_shelf_life_days| C
-    C --> F[Final Output JSON / Dashboard]
+flowchart TD
+    A[User Uploads Fruit Image] --> B[TensorFlow/Keras Vision Model]
+    B -->|Predicts: Ripe / Unripe / Overripe + Confidence| C[Unified Pipeline Engine]
+    
+    D[User Inputs: Storage Temp °C & Humidity %] --> E[Shelf-Life Decay Engine]
+    E -->|Predicts: Remaining Edible Days| C
+    
+    C --> F[Interactive Dashboard / JSON Output]
 ```
 
-### Roles Breakdown
-* **Engineer A — Ripeness Classifier (Computer Vision)**
-  * **Frameworks:** PyTorch, Torchvision
-  * **Architecture:** ResNet18 (Transfer Learning)
-  * **Task:** Extract visual features (skin color, texture, spots) to predict `fruit_type` and `ripeness_stage` (`Unripe`, `Ripe`, `Overripe`).
-* **Engineer B — Shelf-Life Regressor (Tabular & Decay Kinetics)**
-  * **Frameworks:** XGBoost, Scikit-Learn, Pandas
-  * **Task:** Predict remaining shelf-life in days using `ripeness_stage`, `storage_temp_c`, and `humidity_pct`.
+### System Architecture Breakdown
+1. **Module 1: Visual Ripeness Classifier (TensorFlow / Keras)**
+   * **Input:** Image of fruit (`224x224 RGB`).
+   * **Backbone:** Pretrained `tf.keras.applications.ResNet50V2` or `MobileNetV2` (Transfer Learning on ImageNet).
+   * **Output:** Ripeness classification (`Unripe`, `Ripe`, `Overripe`) with confidence percentage.
+2. **Module 2: Shelf-Life Estimator (Tabular ML / Decay Kinetics)**
+   * **Input:** `ripeness_stage`, `storage_temp_c`, `humidity_pct`.
+   * **Engine:** XGBoost or Scikit-Learn (`RandomForestRegressor` / `LinearRegression`).
+   * **Output:** Remaining shelf-life in days (e.g., `4.2 days`).
+3. **Module 3: Application Interface (Streamlit Dashboard / Python Script)**
+   * Single interactive app to upload photos, adjust sliders for temp/humidity, and display results.
 
 ---
 
-## 📦 2. Dataset & Git Strategy
+## ⏱ 2. Solo 1-Week Roadmap
 
-### 🚫 Why Datasets are `.gitignore`d (Not tracked in Git or Git LFS)
-1. **GitHub Limits:** Repositories and Git LFS free tiers have strict quota limits (1 GB LFS storage/bandwidth).
-2. **Speed & Cleanliness:** Tracking thousands of raw image files slows down `git clone`, `git status`, and `git push`.
-3. **Best Practice:** Keep dataset binaries out of Git. Share dataset download links or use a local setup script.
+Yes! This project is **100% doable in 1 week** (or even 2–3 days) as a solo project.
 
-### 🗂 Data Directory Structure (Local Only)
+```text
+[Day 1] ─── Environment Setup & Data Exploration (TensorFlow, Pandas)
+[Day 2] ─── Train TensorFlow/Keras Ripeness Classifier (MobileNetV2 / ResNet50V2)
+[Day 3] ─── Train Tabular Shelf-Life Regressor (XGBoost / Scikit-Learn)
+[Day 4] ─── Build Joint Pipeline (Combine image predictions + tabular inputs)
+[Day 5] ─── Build Streamlit App / UI
+[Day 6] ─── Testing, Evaluation & Documentation
+[Day 7] ─── Buffer & Final Presentation / GitHub Push
+```
+
+---
+
+## 🛠 3. Tech Stack
+
+* **Deep Learning Framework:** TensorFlow 2.x / `tf.keras`
+* **Pretrained Models:** `tf.keras.applications.ResNet50V2` or `tf.keras.applications.MobileNetV2`
+* **Tabular ML Framework:** XGBoost / Scikit-Learn (`RandomForestRegressor`)
+* **Data Handling:** Pandas, NumPy, Pillow, OpenCV
+* **User Interface:** Streamlit (Easy interactive Python UI)
+
+---
+
+## 🗂 4. Project Directory Structure
+
 ```text
 Fruit-Ripeness-Predictor/
-├── .gitignore               # Configured to ignore Train/, Test/, *.pth, etc.
-├── implementation_plan.md    # Technical implementation plan
-├── README.md
-├── requirements.txt         # Shared Python dependencies
-├── src/
-│   ├── classifier/          # Engineer A codebase
-│   │   ├── dataset.py
-│   │   ├── train.py
-│   │   └── predict.py
-│   ├── regressor/           # Engineer B codebase
-│   │   ├── train_regressor.py
-│   │   └── predict_decay.py
-│   └── pipeline.py          # Joint integration pipeline
-├── models/                  # Local directory for trained weights (ignored by git)
-│   ├── resnet18_ripeness.pth
-│   └── xgboost_shelflife.json
-└── Train/                   # Local raw dataset (ignored by git)
-    ├── Overipe/
-    ├── Ripe/
-    └── Unripe/
+├── .gitignore               # Excludes Train/, Test/, models/, *.h5, *.keras
+├── implementation_plan.md    # Solo developer technical plan
+├── README.md                # Project summary & setup instructions
+├── requirements.txt         # Dependencies (tensorflow, xgboost, streamlit, pandas)
+├── models/                  # Local directory for saved model weights
+│   ├── tf_ripeness_model.keras
+│   └── shelflife_regressor.pkl
+└── src/                     # Folder for your Python scripts (to be written by you)
+    ├── train_classifier.py
+    ├── train_regressor.py
+    └── predictor.py
 ```
 
 ---
 
-## 🤝 3. Data Contracts & Integration API
+## 🤝 5. Unified Data Contract Schema
 
-### Contract A: Engineer A Output Schema
-```json
-{
-  "fruit_type": "Banana",
-  "ripeness_stage": "Unripe",
-  "confidence": 0.94
-}
-```
-
-### Contract B: Engineer B Input Schema
-```json
-{
-  "fruit_type": "Banana",
-  "ripeness_stage": "Unripe",
-  "storage_temp_c": 22.0,
-  "humidity_pct": 65.0
-}
-```
-
-### Unified System Output Schema
 ```json
 {
   "status": "success",
-  "classification": {
+  "ripeness_analysis": {
     "fruit_type": "Banana",
     "ripeness_stage": "Unripe",
-    "confidence": 0.94
+    "confidence": 0.95
   },
-  "preservation": {
+  "preservation_estimate": {
     "storage_temp_c": 22.0,
-    "humidity_pct": 65.0,
-    "estimated_shelf_life_days": 4.2
+    "humidity_pct": 60.0,
+    "remaining_shelf_life_days": 4.5
   }
 }
 ```
 
 ---
 
-## 📅 4. Implementation Phases & Timeline
+## 🚀 6. Next Steps
 
-### Phase 1: Environment Setup & Data Verification (Day 1)
-- [x] Configure `.gitignore` to exclude large image datasets and model weights.
-- [x] Create `implementation_plan.md` for team alignment.
-- [ ] Create `requirements.txt` with PyTorch, torchvision, xgboost, scikit-learn, pandas, opencv-python, and pillow.
-- [ ] Engineer A: Verify image dataset classes (`Train/Unripe`, `Train/Ripe`, `Train/Overripe`).
-- [ ] Engineer B: Prepare/simulate decay kinetics tabular dataset (`fruit_type`, `ripeness_stage`, `temp`, `humidity`, `days_left`).
-
-### Phase 2: Independent Model Development (Days 1–2)
-- **Engineer A:**
-  - Build PyTorch Dataset & DataLoader with augmentations (`Resizing 224x224`, `RandomHorizontalFlip`, `ColorJitter`, `Normalize`).
-  - Train ResNet18 model using transfer learning (`weights=ResNet18_Weights.DEFAULT`).
-  - Save best checkpoint to `models/resnet18_ripeness.pth`.
-- **Engineer B:**
-  - Build feature pipeline (One-Hot Encoding for categorical features, StandardScaler for numerical inputs).
-  - Train `XGBRegressor` to predict `remaining_days`.
-  - Save model to `models/xgboost_shelflife.json`.
-
-### Phase 3: System Integration & Inference Pipeline (Day 3)
-- Create `src/pipeline.py` to ingest an image + environmental metrics and output the unified JSON response.
-- Evaluate end-to-end performance and edge-case handling.
-
----
-
-## 🛠 5. Immediate Next Actions
-
-1. **Engineer A:** Run the training script setup to fine-tune ResNet18 on the dataset.
-2. **Engineer B:** Set up the tabular decay dataset and build the XGBoost regression baseline.
-3. Commit and push code updates (`.gitignore`, `implementation_plan.md`, `requirements.txt`, source code) to GitHub.
+1. Install dependencies via `pip install -r requirements.txt`.
+2. Start writing your TensorFlow training script in `src/train_classifier.py`.
